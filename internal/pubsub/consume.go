@@ -16,15 +16,15 @@ const (
 func DeclareAndBind(conn *amqp.Connection, exchange, queueName, key string, queueType SimpleQueueType) (*amqp.Channel, amqp.Queue, error) {
 	channel, err := conn.Channel()
 	if err != nil {
-		return nil, amqp.Queue{}, err
+		return nil, amqp.Queue{}, fmt.Errorf("could not bind queue: %v", err)
 	}
 	queue, err := channel.QueueDeclare(queueName, queueType == SimpleQueueDurable, queueType == SimpleQueueTransient, queueType == SimpleQueueTransient, false, nil)
 	if err != nil {
 		return nil, amqp.Queue{}, fmt.Errorf("could not declare queue: %v", err)
 	}
-	err = channel.QueueBind(queueName, key, exchange, false, nil)
+	err = channel.QueueBind(queue.Name, key, exchange, false, nil)
 	if err != nil {
-		return nil, amqp.Queue{}, err
+		return nil, amqp.Queue{}, fmt.Errorf("could not bind queue: %v", err)
 	}
-	return channel, queue, fmt.Errorf("could not bind queue: %v", err)
+	return channel, queue, nil
 }

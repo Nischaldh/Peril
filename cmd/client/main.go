@@ -21,21 +21,19 @@ func main() {
 	}
 	defer conn.Close()
 	fmt.Println("The connection was successful.")
-	userName, err:= gamelogic.ClientWelcome()
-	if err!=nil{
+	userName, err := gamelogic.ClientWelcome()
+	if err != nil {
 		log.Fatalf("ould not get username: %v", err)
 	}
-	_, queue, err := pubsub.DeclareAndBind(conn, routing.ExchangePerilDirect, routing.PauseKey +"."+userName, routing.PauseKey, pubsub.SimpleQueueTransient)
-	if err!=nil{
+	_, queue, err := pubsub.DeclareAndBind(conn, routing.ExchangePerilDirect, routing.PauseKey+"."+userName, routing.PauseKey, pubsub.SimpleQueueTransient)
+	if err != nil {
 		log.Fatalf("could not subscribe to pause: %v", err)
 	}
 	fmt.Printf("Queue %v declared and bound!\n", queue.Name)
-
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 	<-signalChan
 	fmt.Println("RabbitMQ connection closed.")
-
 
 }

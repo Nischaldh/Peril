@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
+	"strings"
 
+	"github.com/Nischaldh/Peril/internal/gamelogic"
 	"github.com/Nischaldh/Peril/internal/pubsub"
 	"github.com/Nischaldh/Peril/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -24,18 +24,40 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not create a channel: %w\n", err)
 	}
-	err = pubsub.PublishJSON(
-		ch,
-		routing.ExchangePerilDirect,
-		routing.PauseKey,
-		routing.PlayingState{
-			IsPaused: true,
-		})
-	if err != nil {
-		log.Fatalf("could send the message: %w\n", err)
+	
+	gamelogic.PrintClientHelp()
+	for  {
+		inputs := gamelogic.GetInput()
+		if len(inputs) == 0 {
+			continue
+		}
+		switch strings.ToLower(inputs[0]) {
+		case "pause":
+			fmt.Println("Sending pause message...")
+			err = pubsub.PublishJSON(
+				ch,
+				routing.ExchangePerilDirect,
+				routing.PauseKey,
+				routing.PlayingState{
+					IsPaused: true,
+				})
+			if err != nil {
+				log.Fatalf("could send the message: %w\n", err)
+			}
+		case "resume":
+			fmt.Println("Sending resume message...")
+			err = pubsub.PublishJSON(
+				ch,
+				routing.ExchangePerilDirect,
+				routing.PauseKey,
+				routing.PlayingState{
+					IsPaused: false,
+				})
+		case "quit":
+			fmt.Println("Exiting...")
+			return
+		default:
+			fmt.Println("Invalid input...")
+		}
 	}
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	<-signalChan
-	fmt.Println("The program is shutting down and the connection is being closed.")
 }
