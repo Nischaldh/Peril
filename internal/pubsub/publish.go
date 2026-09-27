@@ -8,6 +8,8 @@ import (
 )
 
 
+
+
 func PublishJSON[T any](ch *amqp.Channel, exchange, key string, val T) error {
 
 	valBytes, err := json.Marshal(val)
@@ -23,3 +25,4 @@ func PublishJSON[T any](ch *amqp.Channel, exchange, key string, val T) error {
 	}
 	return nil
 }
+
