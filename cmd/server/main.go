@@ -24,9 +24,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not create a channel: %w\n", err)
 	}
-	
+	_, queue, err := pubsub.DeclareAndBind(con, routing.ExchangePerilTopic, routing.GameLogSlug, routing.GameLogSlug+".*", pubsub.SimpleQueueDurable)
+	if err != nil {
+		log.Fatalf("could not subscribe to pause: %v", err)
+	}
+	fmt.Printf("Queue %v declared and bound!\n", queue.Name)
+
 	gamelogic.PrintClientHelp()
-	for  {
+	for {
 		inputs := gamelogic.GetInput()
 		if len(inputs) == 0 {
 			continue
