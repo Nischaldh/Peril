@@ -24,12 +24,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not get username: %v", err)
 	}
-	_, queue, err := pubsub.DeclareAndBind(conn, routing.ExchangePerilDirect, routing.PauseKey+"."+userName, routing.PauseKey, pubsub.SimpleQueueTransient)
+	gameState:= gamelogic.NewGameState(userName)
+	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilDirect, routing.PauseKey+"."+gameState.GetUsername(), routing.PauseKey, pubsub.SimpleQueueTransient, handlerPause(gameState))
 	if err != nil {
 		log.Fatalf("could not subscribe to pause: %v", err)
 	}
-	fmt.Printf("Queue %v declared and bound!\n", queue.Name)
-	gameState:= gamelogic.NewGameState(userName)
 	for {
 		inputs := gamelogic.GetInput()
 		if len(inputs)==0{
@@ -39,14 +38,14 @@ func main() {
 		case "spawn":
 			err:= gameState.CommandSpawn(inputs)
 			if err!=nil{
-				fmt.Println("Error spawning the troop. %w", err)
+				fmt.Println("Error spawning the troop. %v", err)
 				continue
 			}
 
 		case "move":
 			_, err:= gameState.CommandMove(inputs)
 			if err!=nil{
-				fmt.Println("Error moving the troop. %w", err)
+				fmt.Println("Error moving the troop. %v", err)
 				continue
 			}
 		
