@@ -22,7 +22,7 @@ func main() {
 	fmt.Println("The connection was successful")
 	ch, err := con.Channel()
 	if err != nil {
-		log.Fatalf("Could not create a channel: %w\n", err)
+		log.Fatalf("Could not create a channel: %v\n", err)
 	}
 	_, queue, err := pubsub.DeclareAndBind(con, routing.ExchangePerilTopic, routing.GameLogSlug, routing.GameLogSlug+".*", pubsub.SimpleQueueDurable)
 	if err != nil {
@@ -47,7 +47,7 @@ func main() {
 					IsPaused: true,
 				})
 			if err != nil {
-				log.Fatalf("could send the message: %w\n", err)
+				log.Fatalf("could send the message: %v\n", err)
 			}
 		case "resume":
 			fmt.Println("Sending resume message...")
