@@ -12,8 +12,8 @@ type Acktype int
 const(
 
 	Ack Acktype  =  iota
-	NackRequeue
 	NackDiscard
+	NackRequeue
 )
 
 func SubscribeJSON[T any](
@@ -44,18 +44,14 @@ func SubscribeJSON[T any](
 			switch ack{
 			case Ack:
 				d.Ack(false)
-				fmt.Println("Ack")
 
 			case NackDiscard:
-				d.Nack(false, true)
-				fmt.Println("NackDiscard")
-
-			case NackRequeue:
 				d.Nack(false, false)
-				fmt.Println("NackRequeue")
+			
+			case NackRequeue:
+				d.Nack(false, true)
 
 			}
-			d.Ack(false)
 		}
 	
 	}()

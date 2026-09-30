@@ -18,7 +18,17 @@ func DeclareAndBind(conn *amqp.Connection, exchange, queueName, key string, queu
 	if err != nil {
 		return nil, amqp.Queue{}, fmt.Errorf("could not bind queue: %v", err)
 	}
-	queue, err := channel.QueueDeclare(queueName, queueType == SimpleQueueDurable, queueType == SimpleQueueTransient, queueType == SimpleQueueTransient, false, nil)
+
+	queue, err := channel.QueueDeclare(
+		queueName,
+		queueType == SimpleQueueDurable,
+		queueType == SimpleQueueTransient,
+		queueType == SimpleQueueTransient,
+		false,
+		amqp.Table{
+			"x-dead-letter-exchange": "peril_dlx",
+		},
+	)
 	if err != nil {
 		return nil, amqp.Queue{}, fmt.Errorf("could not declare queue: %v", err)
 	}
