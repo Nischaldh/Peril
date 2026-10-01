@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/Nischaldh/Peril/internal/gamelogic"
 	"github.com/Nischaldh/Peril/internal/pubsub"
@@ -49,7 +52,7 @@ func main() {
 		"war",
 		routing.WarRecognitionsPrefix+".*",
 		pubsub.SimpleQueueDurable,
-		handlerWar(gs),
+		handlerWar(gs, publishCh),
 	)
 	if err != nil {
 		log.Fatalf("could not subscribe to war declarations: %v", err)
@@ -71,7 +74,7 @@ func main() {
 		if len(words) == 0 {
 			continue
 		}
-		switch words[0] {
+		switch strings.ToLower( words[0]){
 		case "move":
 			mv, err := gs.CommandMove(words)
 			if err != nil {
@@ -102,7 +105,23 @@ func main() {
 			gamelogic.PrintClientHelp()
 		case "spam":
 			// TODO: publish n malicious logs
-			fmt.Println("Spamming not allowed yet!")
+			if len(words)!=2{
+				fmt.Println("usage <spam> <n>")
+			}
+			n, err :=strconv.Atoi(words[1])
+			if err!=nil{
+				fmt.Println("Error while converting the number: %v", err)
+				continue 
+			}
+			for i:=0;i<n;i++{
+				message:= gamelogic.GetMaliciousLog()
+				err:= pubsub.PublishGob(publishCh,routing.ExchangePerilTopic ,routing.GameLogSlug+"."+username,message)
+				if err!=nil{
+					fmt.Println("Error while logging: %w", err)
+					continue
+				}
+			}
+			//fmt.Println("Spamming not allowed yet!")
 		case "quit":
 			gamelogic.PrintQuit()
 			return
@@ -110,4 +129,18 @@ func main() {
 			fmt.Println("unknown command")
 		}
 	}
+}
+
+
+func publishGameLog(publishCh *amqp.Channel, username, msg string) error{
+	return pubsub.PublishGob(
+		publishCh,
+		routing.ExchangePerilTopic,
+		routing.GameLogSlug+"."+username,
+		routing.GameLog{
+			Username:    username,
+			CurrentTime: time.Now(),
+			Message:     msg,
+		},
+	)
 }
